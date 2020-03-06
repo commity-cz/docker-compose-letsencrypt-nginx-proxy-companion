@@ -199,6 +199,10 @@ upstream {{ $upstream_name }} {
 {{ end }}
 }
 
+{{ $security_headers := or (first (groupByKeys $containers "Env.SECURITY_HEADERS")) "false" }}
+{{ $csp := or (first (groupByKeys $containers "Env.CSP")) "default-src 'self'; upgrade-insecure-requests;" }}
+{{ $extra_headers := or (first (groupByKeys $containers "Env.EXTRA_HEADERS")) "" }}
+
 {{ $default_host := or ($.Env.DEFAULT_HOST) "" }}
 {{ $default_server := index (dict $host "" $default_host "default_server") $host }}
 
@@ -281,6 +285,13 @@ server {
 	ssl_stapling_verify on;
 	ssl_trusted_certificate {{ printf "/etc/nginx/certs/%s.chain.pem" $cert }};
 	{{ end }}
+
+	{{ if eq $security_headers "true" }}
+    add_header X-XSS-Protection "1; mode=block";
+    add_header Content-Security-Policy "{{ trim $csp }}";
+    {{ end }}
+
+    {{ $extra_headers }}
 
 	{{ if (not (or (eq $https_method "noredirect") (eq $hsts "off"))) }}
 	add_header Strict-Transport-Security "{{ trim $hsts }}" always;
