@@ -1,7 +1,7 @@
 version: '3'
 services:
   nginx-web:
-    image: nginx
+    image: nginx:stable-alpine
     labels:
         com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
     container_name: ${NGINX_WEB:-nginx-web}
@@ -43,7 +43,7 @@ services:
         max-file: ${NGINX_GEN_LOG_MAX_FILE:-10}
 
   nginx-letsencrypt:
-    image: jrcs/letsencrypt-nginx-proxy-companion
+    image: jrcs/letsencrypt-nginx-proxy-companion:stable
     container_name: ${LETS_ENCRYPT:-nginx-letsencrypt}
     restart: always
     volumes:
@@ -51,6 +51,7 @@ services:
       - ${NGINX_FILES_PATH:-./data}/vhost.d:/etc/nginx/vhost.d
       - ${NGINX_FILES_PATH:-./data}/html:/usr/share/nginx/html
       - ${NGINX_FILES_PATH:-./data}/certs:/etc/nginx/certs:rw
+      - ${NGINX_FILES_PATH:-./data}/acme.sh:/etc/acme.sh:rw      
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       NGINX_DOCKER_GEN_CONTAINER: ${DOCKER_GEN:-nginx-gen}
